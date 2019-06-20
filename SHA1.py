@@ -1,9 +1,8 @@
-import binascii
+from Crypto.Util.number import bytes_to_long
 
 # define message and function
 message = b'The quick brown fox jumps over the lazy dog'
 message_length = len(message) * 8
-hex_zfill = lambda h, n: hex(h)[2:].zfill(n)
 left_rotate = lambda n, b: ((n << b) | (n >> (32 - b))) & 0xffffffff
 
 # initialization variables
@@ -16,13 +15,13 @@ h4 = 0xC3D2E1F0
 # pre-processing
 message += b'\x80'
 message += b'\x00' * ((56 - len(message) % 64) % 64)
-message += binascii.unhexlify(hex_zfill(message_length, 16))
+message += bytes.fromhex(hex(message_length)[2:].zfill(16))
 
 # break the message in 512bits chunks
 chunks = [message[i:i+64] for i in range(0, len(message), 64)]
 for chunk in chunks:
 	# break chuck into sixteen 32bits big-endian words
-	w = [int(binascii.hexlify(chunk[i:i+4]), 16) for i in range(0, len(chunk), 4)]
+	w = [bytes_to_long(chunk[i:i+4]) for i in range(0, len(chunk), 4)]
 	# extend 16 words to 80 words
 	for i in range(16, 80):
 		w.append(left_rotate(w[i-3] ^ w[i-8] ^ w[i-14] ^ w[i-16], 1))
@@ -58,5 +57,5 @@ for chunk in chunks:
 	h4 = (h4 + e) & 0xffffffff
 
 # produce the final hash value
-digest = hex_zfill(h0, 8) + hex_zfill(h1, 8) + hex_zfill(h2, 8) + hex_zfill(h3, 8) + hex_zfill(h4, 8)
+digest = ''.join(map(lambda x: hex(x)[2:].zfill(8), [h0, h1, h2, h3, h4]))
 print(digest)

@@ -1,8 +1,7 @@
-import binascii
+from Crypto.Util.number import bytes_to_long
 
 message = b'The quick brown fox jumps over the lazy dog'
 message_length = len(message) * 8
-hex_zfill = lambda h, n: hex(h)[2:].zfill(n)
 right_rotate = lambda n, b: ((n >> b) | (n << (64 - b))) & 0xffffffffffffffff
 
 # initialization variables
@@ -38,18 +37,18 @@ k = [
 # pre-processing
 message += b'\x80'
 message += b'\x00' * ((112 - len(message) % 128) % 128)
-message += binascii.unhexlify(hex_zfill(message_length, 32))
+message += bytes.fromhex(hex(message_length)[2:].zfill(32))
 
 # break the message in 1024bits chunks
 chunks = [message[i:i+128] for i in range(0, len(message), 128)]
 
 for chunk in chunks:
 	# break chuck into sixteen 64bits big-endian words
-	w = [int(binascii.hexlify(chunk[i:i+8]), 16) for i in range(0, len(chunk), 8)]
+	w = [bytes_to_long(chunk[i:i+8]) for i in range(0, len(chunk), 8)]
 	# extend 16 words to 80 words
 	for i in range(16, 80):
-		s0 = right_rotate(w[i-15], 1) ^ right_rotate(w[i-15], 8) ^ (w[i-15] >> 7) #right_rotate(w[i-15], 3)
-		s1 = right_rotate(w[i-2], 19) ^ right_rotate(w[i-2], 61) ^ (w[i-2] >> 6) #right_rotate(w[i-2], 10)
+		s0 = right_rotate(w[i-15], 1) ^ right_rotate(w[i-15], 8) ^ (w[i-15] >> 7) # right_rotate(w[i-15], 3)
+		s1 = right_rotate(w[i-2], 19) ^ right_rotate(w[i-2], 61) ^ (w[i-2] >> 6) # right_rotate(w[i-2], 10)
 		w.append((w[i-16] + s0 + w[i-7] + s1) & 0xffffffffffffffff)
 
 	# initialize hash value for this chunk
@@ -84,5 +83,5 @@ for chunk in chunks:
 	h7 = (h7 + h) & 0xffffffffffffffff
 
 # produce the final hash value
-digest = hex_zfill(h0, 16) + hex_zfill(h1, 16) + hex_zfill(h2, 16) + hex_zfill(h3, 16) + hex_zfill(h4, 16) + hex_zfill(h5, 16)
+digest = ''.join(map(lambda x: hex(x)[2:].zfill(16), [h0, h1, h2, h3, h4, h5]))
 print(digest)

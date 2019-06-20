@@ -3,7 +3,6 @@ import struct
 # define message and function
 message = b'The quick brown fox jumps over the lazy dog'
 message_length = len(message) * 8
-hex_zfill = lambda i, n: hex(struct.unpack("!I", struct.pack("I", i))[0])[2:].zfill(n)
 left_rotate = lambda n, b: ((n << b) | (n >> (32 - b))) & 0xffffffff
 
 # initialization variables
@@ -80,5 +79,5 @@ for chunk in chunks:
 	h3 = (h3 + d) & 0xffffffff
 
 # produce the final hash value
-digest = hex_zfill(h0, 8) + hex_zfill(h1, 8) + hex_zfill(h2, 8) + hex_zfill(h3, 8)
+digest = ''.join(map(lambda x: hex(struct.unpack("!I", struct.pack("I", x))[0])[2:].zfill(8), [h0, h1, h2, h3]))
 print(digest)

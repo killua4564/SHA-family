@@ -1,8 +1,7 @@
-import binascii
+from Crypto.Util.number import bytes_to_long
 
 message = b'The quick brown fox jumps over the lazy dog'
 message_length = len(message) * 8
-hex_zfill = lambda h, n: hex(h)[2:].zfill(n)
 right_rotate = lambda n, b: ((n >> b) | (n << (32 - b))) & 0xffffffff
 
 # initialization variables
@@ -17,30 +16,30 @@ h7 = 0x5be0cd19
 
 # initialize table of round constants
 k = [
-   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-   0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-   0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-   0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-   0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-   0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-   0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-   0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+	0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+	0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+	0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+	0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+	0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+	0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+	0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+	0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 ]
 
 # pre-processing
 message += b'\x80'
 message += b'\x00' * ((56 - len(message) % 64) % 64)
-message += binascii.unhexlify(hex_zfill(message_length, 16))
+message += bytes.fromhex(hex(message_length)[2:].zfill(16))
 
 # break the message in 512bits chunks
 chunks = [message[i:i+64] for i in range(0, len(message), 64)]
 for chunk in chunks:
 	# break chuck into sixteen 32bits big-endian words
-	w = [int(binascii.hexlify(chunk[i:i+4]), 16) for i in range(0, len(chunk), 4)]
+	w = [bytes_to_long(chunk[i:i+4]) for i in range(0, len(chunk), 4)]
 	# extend 16 words to 64 words
 	for i in range(16, 64):
-		s0 = right_rotate(w[i-15], 7) ^ right_rotate(w[i-15], 18) ^ (w[i-15] >> 3) #right_rotate(w[i-15], 3)
-		s1 = right_rotate(w[i-2], 17) ^ right_rotate(w[i-2], 19) ^ (w[i-2] >> 10) #right_rotate(w[i-2], 10)
+		s0 = right_rotate(w[i-15], 7) ^ right_rotate(w[i-15], 18) ^ (w[i-15] >> 3) # right_rotate(w[i-15], 3)
+		s1 = right_rotate(w[i-2], 17) ^ right_rotate(w[i-2], 19) ^ (w[i-2] >> 10) # right_rotate(w[i-2], 10)
 		w.append((w[i-16] + s0 + w[i-7] + s1) & 0xffffffff)
 
 	# initialize hash value for this chunk
@@ -75,5 +74,5 @@ for chunk in chunks:
 	h7 = (h7 + h) & 0xffffffff
 
 # produce the final hash value
-digest = hex_zfill(h0, 8) + hex_zfill(h1, 8) + hex_zfill(h2, 8) + hex_zfill(h3, 8) + hex_zfill(h4, 8) + hex_zfill(h5, 8) + hex_zfill(h6, 8) + hex_zfill(h7, 8)
+digest = ''.join(map(lambda x: hex(x)[2:].zfill(8), [h0, h1, h2, h3, h4, h5, h6, h7]))
 print(digest)
