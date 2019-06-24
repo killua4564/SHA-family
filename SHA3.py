@@ -21,10 +21,6 @@ ROUND = 24
 left_rotate = lambda n, b: (n << b | n >> (64 - b)) & 0xFFFFFFFFFFFFFFFF
 
 def keccak1600(r, c, message):
-	
-	def debug(string, state):
-		print(string, np.array(state // (1 << 32), dtype=np.int32))
-		print(string, np.array(state % (1 << 32), dtype=np.int32))
 
 	def theta(state):
 		parity = np.zeros(5, dtype=np.uint64)
@@ -82,12 +78,24 @@ def keccak1600(r, c, message):
 		for r in range(ROUND):
 			state = iota(chi(pi(rho(theta(state)))), r)
 
-	digest = b''.join(map(lambda x: struct.pack('Q', x), [int(i) for i in state.T.reshape(25)[:4]]))
-	hexdigest = digest.hex()
+	digest = b''.join(map(lambda x: struct.pack('Q', x), [int(i) for i in state.T.reshape(25)]))
+	hexdigest = digest.hex()[:c // 8]
 	return hexdigest
+
+def hash224(message):
+	return keccak1600(1152, 448, message)
 
 def hash256(message):
 	return keccak1600(1088, 512, message)
 
+def hash384(message):
+	return keccak1600(832, 768, message)
+
+def hash512(message):
+	return keccak1600(576, 1024, message)
+
 message = b'The quick brown fox jumps over the lazy dog'
-print(hash256(message))
+print("SHA3-224", hash224(message))
+print("SHA3-256", hash256(message))
+print("SHA3-384", hash384(message))
+print("SHA3-512", hash512(message))
