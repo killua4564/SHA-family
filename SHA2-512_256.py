@@ -83,3 +83,5 @@ for chunk in chunks:
 # produce the final hash value
 digest = ''.join(map(lambda x: hex(x)[2:].zfill(16), [h0, h1, h2, h3]))
 print(digest)
+
+assert digest == 'dd9d67b371519c339ed8dbd25af90e976a1eeefd4ad3d889005e532fc5bef04d'

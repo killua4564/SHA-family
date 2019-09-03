@@ -93,3 +93,9 @@ print("SHA3-224", hash224(message))
 print("SHA3-256", hash256(message))
 print("SHA3-384", hash384(message))
 print("SHA3-512", hash512(message))
+
+assert hash224(message) == 'd15dadceaa4d5d7bb3b48f446421d542e08ad8887305e28d58335795'
+assert hash256(message) == '69070dda01975c8c120c3aada1b282394e7f032fa9cf32f4cb2259a0897dfc04'
+assert hash384(message) == '7063465e08a93bce31cd89d2e3ca8f602498696e253592ed26f07bf7e703cf328581e1471a7ba7ab119b1a9ebdf8be41'
+assert hash512(message) == '01dedd5de4ef14642445ba5f5b97c15e47b9ad931326e4b0727cd94cefc44fff23f07bf543139939b49128caf436dc1bdee54fcb24023a08d9403f9b4bf0d450'
+

@@ -77,5 +77,7 @@ for chunk in chunks:
 	h3 = (h3 + d) & 0xffffffff
 
 # produce the final hash value
-digest = ''.join(map(lambda x: hex(struct.unpack("!I", struct.pack("I", x))[0])[2:].zfill(8), [h0, h1, h2, h3]))
+digest = ''.join(map(lambda x: hex(int.from_bytes(x.to_bytes(4, byteorder='little'), byteorder='big'))[2:].zfill(8), [h0, h1, h2, h3]))
 print(digest)
+
+assert digest == '9e107d9d372bb6826bd81d3542a419d6'
