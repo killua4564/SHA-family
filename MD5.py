@@ -1,5 +1,3 @@
-import struct
-
 # define message and function
 message = b'The quick brown fox jumps over the lazy dog'
 message_length = len(message) * 8
@@ -41,13 +39,13 @@ r = [
 # pre-processing
 message += b'\x80'
 message += b'\x00' * ((56 - len(message) % 64) % 64)
-message += struct.pack('Q', message_length)
+message += message_length.to_bytes(8, byteorder="little")
 
 # break the message in 512bits chunks
 chunks = [message[i:i+64] for i in range(0, len(message), 64)]
 for chunk in chunks:
 	# break chuck into sixteen 32bits little-endian words
-	w = [struct.unpack('I', chunk[i:i+4])[0] for i in range(0, len(chunk), 4)]
+	w = [int.from_bytes(chunk[i:i+4], byteorder='little') for i in range(0, len(chunk), 4)]
 
 	# initialize hash value for this chunk
 	a = h0

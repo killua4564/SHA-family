@@ -1,6 +1,4 @@
 import numpy as np
-import struct
-from Crypto.Util.number import bytes_to_long
 
 RC = [
 	0x0000000000000001, 0x0000000000008082, 0x800000000000808a,
@@ -13,11 +11,8 @@ RC = [
 	0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
 ]
 
-# w = 64
-# w = 2 ** l
-# round = 12 + 2 * l
-W = 64
-ROUND = 24  
+W = 64		# W = 2 ** l
+ROUND = 24  # ROUND = 12 + 2 * l
 left_rotate = lambda n, b: (n << b | n >> (64 - b)) & 0xFFFFFFFFFFFFFFFF
 
 def keccak1600(r, c, message):
@@ -52,7 +47,6 @@ def keccak1600(r, c, message):
 	# 	for t in range(24):
 	# 		i, j = j, (2 * i + 3 * j) % 5
 	# 		state[i][j], current = left_rotate(int(current), ((t+1)*(t+2)//2)%64), state[i][j]
-	# 	debug("pi:", state)
 	# 	return state
 
 	def chi(state):
@@ -65,7 +59,7 @@ def keccak1600(r, c, message):
 
 	padding_length = r // 8 - len(message) % (r // 8)
 	message += b'\x86' if padding_length == 1 else b'\x06' + bytes(padding_length - 2) +  b'\x80'
-	message_list = list(map(lambda x: struct.unpack('Q', x)[0], [message[i:i+8] for i in range(0, len(message), 8)]))
+	message_list = list(map(lambda x: int.from_bytes(x, byteorder="little"), [message[i:i+8] for i in range(0, len(message), 8)]))
 
 	state = np.zeros((5, 5), dtype=np.uint64)
 	blocksize = 8 * r // W
@@ -78,7 +72,7 @@ def keccak1600(r, c, message):
 		for r in range(ROUND):
 			state = iota(chi(pi(rho(theta(state)))), r)
 
-	digest = b''.join(map(lambda x: struct.pack('Q', x), [int(i) for i in state.T.reshape(25)]))
+	digest = b''.join(map(lambda x: x.to_bytes(8, byteorder="little"), [int(i) for i in state.T.reshape(25)]))
 	hexdigest = digest.hex()[:c // 8]
 	return hexdigest
 

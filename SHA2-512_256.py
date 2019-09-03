@@ -1,5 +1,3 @@
-from Crypto.Util.number import bytes_to_long
-
 message = b'The quick brown fox jumps over the lazy dog'
 message_length = len(message) * 8
 right_rotate = lambda n, b: ((n >> b) | (n << (64 - b))) & 0xffffffffffffffff
@@ -44,7 +42,7 @@ chunks = [message[i:i+128] for i in range(0, len(message), 128)]
 
 for chunk in chunks:
 	# break chuck into sixteen 64bits big-endian words
-	w = [bytes_to_long(chunk[i:i+8]) for i in range(0, len(chunk), 8)]
+	w = [int.from_bytes(chunk[i:i+8], byteorder='big') for i in range(0, len(chunk), 8)]
 	# extend 16 words to 80 words
 	for i in range(16, 80):
 		s0 = right_rotate(w[i-15], 1) ^ right_rotate(w[i-15], 8) ^ (w[i-15] >> 7) # right_rotate(w[i-15], 3)
